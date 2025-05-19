@@ -1,43 +1,37 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy VuePress Site
 
 on:
-  # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+    branches:
+      - main # 监听 main 分支的推送（按需改为 master 或其他分支）
 
 jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
-          # Upload entire repository
-          path: '.'
+          fetch-depth: 0 # 获取完整提交历史（可选）
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18 # 推荐使用 VuePress 2.x 兼容的 Node 版本
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci # 比 npm install 更严格，适合 CI 环境
+
+      - name: Build VuePress
+        run: npm run build # 必须确保 package.json 中有 build 脚本
+
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.ACCESSTOKEN }} # 自动生成的 token
+          publish_dir: docs/.vuepress/dist # VuePress 默认输出目录
+          keep_files: false # 完全覆盖目标分支内容
+          # 如果部署到其他分支，添加以下配置：
+          # publish_branch: gh-pages  # 默认使用 gh-pages 分支
+          branch: blog.pages
