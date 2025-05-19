@@ -34,4 +34,4 @@ jobs:
           keep_files: false # 完全覆盖目标分支内容
           # 如果部署到其他分支，添加以下配置：
           # publish_branch: gh-pages  # 默认使用 gh-pages 分支
-          branch: blog.pages
+          branch: main
